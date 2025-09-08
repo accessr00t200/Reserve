@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home - FB Lite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>FB Lite</h1>
+  <nav>
+    <a href="profile.html">Profile</a>
+    <a href="users.html">Users</a>
+    <a href="chat.html">Chat</a>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="create-post">
+    <textarea id="postText" placeholder="What's on your mind?"></textarea>
+    <input type="file" id="postImage">
+    <button id="postBtn">Post</button>
+  </div>
+  <div id="feed"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="index.html"));
+
+// Redirect if not logged in
+auth.onAuthStateChanged(user=>{
+  if(!user) window.location.href="index.html";
+  else loadFeed(user.uid);
+});
+
+// Create Post
+document.getElementById("postBtn").addEventListener("click", async ()=>{
+  const user = auth.currentUser;
+  const text = document.getElementById("postText").value;
+  const imageFile = document.getElementById("postImage").files[0];
+  if(!text && !imageFile) return alert("Add text or image");
+
+  let imageUrl = "";
+  if(imageFile){
+    const storageRef = storage.ref('posts/'+Date.now()+"_"+imageFile.name);
+    await storageRef.put(imageFile);
+    imageUrl = await storageRef.getDownloadURL();
+  }
+
+  const postRef = db.ref('posts').push();
+  postRef.set({
+    author: user.uid,
+    text,
+    image: imageUrl,
+    timestamp: Date.now(),
+    likes: {},
+    comments: {}
+  });
+
+  document.getElementById("postText").value="";
+  document.getElementById("postImage").value="";
+});
+
+// Load Feed
+function loadFeed(uid){
+  const feed = document.getElementById("feed");
+  db.ref('posts').orderByChild('timestamp').on('value', snapshot=>{
+    feed.innerHTML="";
+    snapshot.forEach(postSnap=>{
+      const post = postSnap.val();
+      const postId = postSnap.key;
+      const postDiv = document.createElement("div");
+      postDiv.classList.add("post");
+      postDiv.innerHTML = `
+        <p>${post.text || ""}</p>
+        ${post.image ? `<img src="${post.image}" />` : ""}
+        <button onclick="likePost('${postId}')">Like (${post.likes ? Object.keys(post.likes).length : 0})</button>
+        <button onclick="showComments('${postId}')">Comments (${post.comments ? Object.keys(post.comments).length : 0})</button>
+        <div id="comments_${postId}"></div>
+        <input type="text" id="commentInput_${postId}" placeholder="Add comment"><button onclick="addComment('${postId}')">Post</button>
+      `;
+      feed.prepend(postDiv);
+    });
+  });
+}
+
+// Like Post
+function likePost(postId){
+  const user = auth.currentUser;
+  const likesRef = db.ref(`posts/${postId}/likes/${user.uid}`);
+  likesRef.once('value', snap=>{
+    if(snap.exists()) likesRef.remove();
+    else likesRef.set(true);
+  });
+}
+
+// Comments
+function showComments(postId){
+  const commentsDiv = document.getElementById("comments_"+postId);
+  db.ref(`posts/${postId}/comments`).on('value', snap=>{
+    commentsDiv.innerHTML="";
+    snap.forEach(c=>{
+      const comment = c.val();
+      const p = document.createElement("p");
+      p.textContent = comment.text;
+      commentsDiv.appendChild(p);
+    });
+  });
+}
+
+function addComment(postId){
+  const user = auth.currentUser;
+  const input = document.getElementById("commentInput_"+postId);
+  if(!input.value) return;
+  const commentRef = db.ref(`posts/${postId}/comments`).push();
+  commentRef.set({
+    user: user.uid,
+    text: input.value,
+    timestamp: Date.now()
+  });
+  input.value="";
+}
+</script>
+</body>
+</html>
