@@ -1,0 +1,269 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* Body */
+body {
+  background-color: #f0f2f5;
+  color: #111b21;
+}
+
+/* Header */
+header {
+  background-color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  color: #1877f2;
+}
+
+header nav a {
+  margin-right: 15px;
+  text-decoration: none;
+  color: #111b21;
+  font-weight: bold;
+}
+
+header nav button {
+  padding: 5px 10px;
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+header nav button:hover {
+  background-color: #145dbf;
+}
+
+/* Container */
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 0 10px;
+}
+
+/* Login & Signup Box */
+.login-box {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.login-box input[type="text"],
+.login-box input[type="email"],
+.login-box input[type="password"] {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.login-box button {
+  padding: 10px 20px;
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-box button:hover {
+  background-color: #145dbf;
+}
+
+.login-box a {
+  color: #1877f2;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-box a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+/* Profile Box */
+.profile-box {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.profile-box img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
+.profile-box input[type="text"],
+.profile-box input[type="file"] {
+  width: 80%;
+  margin: 10px 0;
+  padding: 8px;
+}
+
+.profile-box button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.profile-box button:hover {
+  background-color: #145dbf;
+}
+
+/* Create Post */
+.create-post {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.create-post textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  resize: none;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.create-post input[type="file"] {
+  margin-bottom: 10px;
+}
+
+/* Feed / Posts */
+.post {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.post img {
+  max-width: 100%;
+  margin: 10px 0;
+  border-radius: 10px;
+}
+
+.post button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.post button:hover {
+  background-color: #145dbf;
+}
+
+/* Users Page */
+.user-box {
+  background-color: #fff;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.user-box button {
+  padding: 5px 10px;
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.user-box button:hover {
+  background-color: #145dbf;
+}
+
+/* Chat */
+#chatBox {
+  background-color: #fff;
+  padding: 15px;
+  height: 400px;
+  overflow-y: auto;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+#chatBox p {
+  margin-bottom: 5px;
+}
+
+#chatInput {
+  width: 75%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+#sendBtn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #1877f2;
+  color: #fff;
+  cursor: pointer;
+}
+
+#sendBtn:hover {
+  background-color: #145dbf;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  header nav a, header nav button {
+    display: block;
+    margin: 5px 0;
+  }
+
+  .container {
+    padding: 0 5px;
+  }
+
+  .profile-box input[type="text"], .profile-box input[type="file"] {
+    width: 100%;
+  }
+}
