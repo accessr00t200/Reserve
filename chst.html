@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat - FB Lite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>FB Lite</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="profile.html">Profile</a>
+    <a href="users.html">Users</a>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <select id="friendSelect"></select>
+  <div id="chatBox"></div>
+  <input type="text" id="chatInput" placeholder="Type a message"><button id="sendBtn">Send</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="index.html"));
+
+auth.onAuthStateChanged(user=>{
+  if(!user) window.location.href="index.html";
+  else loadFriends(user.uid);
+});
+
+let currentChatId = "";
+function loadFriends(uid){
+  const friendSelect = document.getElementById("friendSelect");
+  db.ref('users/'+uid+'/friends').on('value', snap=>{
+    friendSelect.innerHTML="";
+    snap.forEach(f=>{
+      const option = document.createElement("option");
+      option.value = f.key;
+      db.ref('users/'+f.key+'/username').once('value').then(s=> option.text = s.val());
+      friendSelect.appendChild(option);
+    });
+    if(friendSelect.options.length>0){
+      currentChatId = getChatId(uid, friendSelect.value);
+      loadChat();
+    }
+  });
+
+  friendSelect.addEventListener('change', ()=>{
+    const uid1 = auth.currentUser.uid;
+    const uid2 = friendSelect.value;
+    currentChatId = getChatId(uid1, uid2);
+    loadChat();
+  });
+}
+
+function getChatId(uid1, uid2){
+  return uid1<uid2 ? `chat_${uid1}_${uid2}` : `chat_${uid2}_${uid1}`;
+}
+
+function loadChat(){
+  const chatBox = document.getElementById("chatBox");
+  chatBox.innerHTML="";
+  db.ref('chats/'+currentChatId+'/messages').on('value', snap=>{
+    chatBox.innerHTML="";
+    snap.forEach(m=>{
+      const msg = m.val();
+      const p = document.createElement("p");
+      p.textContent = `${msg.sender===auth.currentUser.uid ? "You" : "Friend"}: ${msg.text}`;
+      chatBox.appendChild(p);
+    });
+  });
+}
+
+// Send Message
+document.getElementById("sendBtn").addEventListener("click", ()=>{
+  const input = document.getElementById("chatInput");
+  if(!input.value) return;
+  const msgRef = db.ref('chats/'+currentChatId+'/messages').push();
+  msgRef.set({sender: auth.currentUser.uid, text: input.value, timestamp: Date.now()});
+  input.value="";
+});
+</script>
+</body>
+</html>
