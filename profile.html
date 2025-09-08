@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile - FB Lite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>FB Lite</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="users.html">Users</a>
+    <a href="chat.html">Chat</a>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="profile-box">
+    <img id="profilePic" src="images/default-profile.png" alt="Profile Pic">
+    <input type="file" id="profileImage">
+    <input type="text" id="username" placeholder="Username">
+    <button id="updateProfile">Update Profile</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="index.html"));
+
+// Load profile
+auth.onAuthStateChanged(user=>{
+  if(!user) window.location.href="index.html";
+  else{
+    const userRef = db.ref('users/'+user.uid);
+    userRef.on('value', snap=>{
+      const data = snap.val();
+      if(data){
+        document.getElementById("username").value = data.username || "";
+        document.getElementById("profilePic").src = data.profilePic || "images/default-profile.png";
+      }
+    });
+  }
+});
+
+// Update profile
+document.getElementById("updateProfile").addEventListener("click", async ()=>{
+  const user = auth.currentUser;
+  const newName = document.getElementById("username").value;
+  const imageFile = document.getElementById("profileImage").files[0];
+  let imageUrl = null;
+
+  if(imageFile){
+    const storageRef = storage.ref('profilePics/'+user.uid+"_"+Date.now());
+    await storageRef.put(imageFile);
+    imageUrl = await storageRef.getDownloadURL();
+  }
+
+  const updateData = {username: newName};
+  if(imageUrl) updateData.profilePic = imageUrl;
+
+  db.ref('users/'+user.uid).update(updateData);
+  alert("Profile updated!");
+});
+</script>
+</body>
+</html>
