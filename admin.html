@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - FB Lite</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* Admin-specific styles */
+.admin-section {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.admin-section h2 {
+  color: #1877f2;
+  margin-bottom: 10px;
+}
+
+.admin-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-box:last-child {
+  border-bottom: none;
+}
+
+.admin-box button {
+  padding: 5px 10px;
+  background-color: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.admin-box button:hover {
+  background-color: #b71c1c;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>FB Lite Admin</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="admin-section" id="usersSection">
+    <h2>All Users</h2>
+    <div id="usersList"></div>
+  </div>
+
+  <div class="admin-section" id="postsSection">
+    <h2>All Posts</h2>
+    <div id="postsList"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="index.html"));
+
+// Check admin
+auth.onAuthStateChanged(user=>{
+  if(!user) window.location.href="index.html";
+  else{
+    db.ref('admins/'+user.uid).once('value').then(snap=>{
+      if(!snap.exists()) {
+        alert("Access denied! Admins only.");
+        window.location.href="home.html";
+      } else {
+        loadUsers();
+        loadPosts();
+      }
+    });
+  }
+});
+
+// Load all users
+function loadUsers(){
+  db.ref('users').on('value', snap=>{
+    const usersList = document.getElementById("usersList");
+    usersList.innerHTML="";
+    snap.forEach(uSnap=>{
+      const u = uSnap.val();
+      const div = document.createElement("div");
+      div.classList.add("admin-box");
+      div.innerHTML = `<p>${u.username} (${u.email})</p><button onclick="deleteUser('${uSnap.key}')">Delete</button>`;
+      usersList.appendChild(div);
+    });
+  });
+}
+
+// Load all posts
+function loadPosts(){
+  db.ref('posts').on('value', snap=>{
+    const postsList = document.getElementById("postsList");
+    postsList.innerHTML="";
+    snap.forEach(pSnap=>{
+      const p = pSnap.val();
+      const div = document.createElement("div");
+      div.classList.add("admin-box");
+      div.innerHTML = `<p>${p.text || "Image Post"}</p><button onclick="deletePost('${pSnap.key}')">Delete</button>`;
+      postsList.appendChild(div);
+    });
+  });
+}
+
+// Delete user
+function deleteUser(uid){
+  if(confirm("Are you sure you want to delete this user?")){
+    db.ref('users/'+uid).remove();
+    // Remove posts by this user
+    db.ref('posts').orderByChild('author').equalTo(uid).once('value', snap=>{
+      snap.forEach(p=> db.ref('posts/'+p.key).remove());
+    });
+    alert("User deleted!");
+  }
+}
+
+// Delete post
+function deletePost(postId){
+  if(confirm("Delete this post?")){
+    db.ref('posts/'+postId).remove();
+    alert("Post deleted!");
+  }
+}
+</script>
+</body>
+</html>
