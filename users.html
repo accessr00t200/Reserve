@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users - FB Lite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>FB Lite</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="profile.html">Profile</a>
+    <a href="chat.html">Chat</a>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div id="usersList"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="index.html"));
+
+auth.onAuthStateChanged(user=>{
+  if(!user) window.location.href="index.html";
+  else loadUsers(user.uid);
+});
+
+// Load all users
+function loadUsers(uid){
+  db.ref('users').on('value', snap=>{
+    const usersList = document.getElementById("usersList");
+    usersList.innerHTML="";
+    snap.forEach(userSnap=>{
+      const u = userSnap.val();
+      const uId = userSnap.key;
+      if(uId === uid) return; // skip current user
+      const div = document.createElement("div");
+      div.classList.add("user-box");
+      let btnText = "Add Friend";
+      if(u.friends && u.friends[uid]) btnText = "Friend";
+      else if(u.friendRequests && u.friendRequests[uid]) btnText = "Requested";
+
+      div.innerHTML = `<p>${u.username}</p><button onclick="sendRequest('${uid}','${uId}')">${btnText}</button>`;
+      usersList.appendChild(div);
+    });
+  });
+}
+
+// Send Friend Request
+function sendRequest(currentUid, targetUid){
+  db.ref(`users/${targetUid}/friendRequests/${currentUid}`).set(true);
+  alert("Friend request sent!");
+}
+</script>
+</body>
+</html>
