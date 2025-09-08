@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign Up - FB Lite</title>
 <link rel="stylesheet" href="css/style.css">
+<style>
+.login-box h2 { color: #1877f2; margin-bottom: 15px; }
+</style>
 </head>
 <body>
+
 <div class="container">
   <div class="login-box">
     <h2>Create Account</h2>
@@ -19,34 +23,67 @@
   </div>
 </div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
-<script src="js/firebase.js"></script>
-<script>
-const signupBtn = document.getElementById("signupBtn");
-const username = document.getElementById("username");
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const errorMsg = document.getElementById("errorMsg");
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
 
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyD4EyuaRixoXm03eG2oCMqka65SmVRnfSY",
+  authDomain: "chatting-app-2fc10.firebaseapp.com",
+  databaseURL: "https://chatting-app-2fc10-default-rtdb.firebaseio.com",
+  projectId: "chatting-app-2fc10",
+  storageBucket: "chatting-app-2fc10.firebasestorage.app",
+  messagingSenderId: "841906950046",
+  appId: "1:841906950046:web:4f8f23328f0208bbda908f"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
+
+// Signup logic
+const signupBtn = document.getElementById("signupBtn");
 signupBtn.addEventListener("click", () => {
-  auth.createUserWithEmailAndPassword(email.value, password.value)
-    .then((userCredential) => {
+  const username = document.getElementById("username").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorMsg = document.getElementById("errorMsg");
+
+  if(!username || !email || !password){
+    errorMsg.textContent = "All fields are required!";
+    return;
+  }
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(userCredential => {
       const user = userCredential.user;
+      // Save user info in Realtime Database
       db.ref('users/' + user.uid).set({
-        username: username.value,
-        email: email.value,
+        username: username,
+        email: email,
         profilePic: "images/default-profile.png",
         friends: {},
         friendRequests: {}
       });
+
       window.location.href = "home.html";
     })
-    .catch((error) => {
+    .catch(error => {
       errorMsg.textContent = error.message;
     });
 });
+
+// Redirect if already logged in
+auth.onAuthStateChanged(user => {
+  if(user) window.location.href = "home.html";
+});
 </script>
+
 </body>
 </html>
