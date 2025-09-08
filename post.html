@@ -1,0 +1,76 @@
+<!-- post.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post - FB Lite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>FB Lite</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="profile.html">Profile</a>
+    <a href="users.html">Users</a>
+    <a href="chat.html">Chat</a>
+    <button id="logoutBtn">Logout</button>
+  </nav>
+</header>
+
+<div class="container" id="postContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="index.html"));
+
+auth.onAuthStateChanged(user=>{
+  if(!user) window.location.href="index.html";
+  else loadPost();
+});
+
+function loadPost(){
+  const urlParams = new URLSearchParams(window.location.search);
+  const postId = urlParams.get('id');
+  if(!postId) return alert("No post ID");
+  const container = document.getElementById("postContainer");
+
+  db.ref('posts/'+postId).on('value', snap=>{
+    const post = snap.val();
+    container.innerHTML=`
+      <p>${post.text}</p>
+      ${post.image ? `<img src="${post.image}"/>` : ""}
+      <p>Likes: ${post.likes ? Object.keys(post.likes).length : 0}</p>
+      <div id="comments"></div>
+      <input type="text" id="commentInput" placeholder="Add comment"><button id="addCommentBtn">Comment</button>
+    `;
+
+    document.getElementById("addCommentBtn").addEventListener("click", ()=>{
+      const input = document.getElementById("commentInput");
+      if(!input.value) return;
+      const commentRef = db.ref(`posts/${postId}/comments`).push();
+      commentRef.set({user: auth.currentUser.uid, text: input.value, timestamp: Date.now()});
+      input.value="";
+    });
+
+    const commentsDiv = document.getElementById("comments");
+    db.ref(`posts/${postId}/comments`).on('value', cSnap=>{
+      commentsDiv.innerHTML="";
+      cSnap.forEach(c=>{
+        const com = c.val();
+        const p = document.createElement("p");
+        p.textContent = com.text;
+        commentsDiv.appendChild(p);
+      });
+    });
+  });
+}
+</script>
+</body>
+</html>
